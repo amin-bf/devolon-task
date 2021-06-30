@@ -1,0 +1,195 @@
+apiVersion: apps/v1 # App deployment
+kind: Deployment
+metadata:
+  name: devolon-laravel-depl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: devolon-laravel
+  template:
+    metadata:
+      labels:
+        app: devolon-laravel
+    spec:
+      # securityContext:
+      #   runAsUser: 1000 # ID of the user that is going to apply the deployment
+      #   runAsGroup: 1000 # ID of the user that is going to apply the deployment
+      #   fsGroup: 1000 # ID of the user that is going to apply the deployment
+      containers:
+        - name: devolon-laravel
+          image: sail:8.0-app
+          env:
+            - name: WWWUSER
+              value: "1000"
+            - name: LARAVEL_SAIL
+              value: "1"
+          volumeMounts:
+            - mountPath: /var/www/html
+              name: devolon-laravel-vol
+      volumes:
+        - name: devolon-laravel-vol
+          hostPath:
+            path: /home/amin/projects/laravel/devolon # the absolute path to the project directory
+            type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: devolon-laravel-srv
+spec:
+  selector:
+    app: devolon-laravel
+  type: ClusterIP
+  ports:
+    - name: devolon-laravel
+      protocol: TCP
+      port: 80
+      targetPort: 80
+---
+apiVersion: apps/v1 # MySql deployment
+kind: Deployment
+metadata:
+  name: devolon-mysql-depl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: devolon-mysql
+  template:
+    metadata:
+      labels:
+        app: devolon-mysql
+    spec:
+      containers:
+        - name: devolon-mysql
+          image: mysql:8
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: servo-secrets
+                  key: MYSQL_ROOT_PASSWORD
+            - name: MYSQL_DATABASE
+              value: devolon_db
+            - name: MYSQL_USER
+              value: devolon_dbu
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: servo-secrets
+                  key: MYSQL_ROOT_PASSWORD
+          volumeMounts:
+            - mountPath: /var/lib/mysql
+              name: devolon-mysql-vol
+      volumes:
+        - name: devolon-mysql-vol
+          hostPath:
+            path: /home/amin/projects/laravel/devolon-mysql # the absolute path to desired directory
+            type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: devolon-mysql-srv
+spec:
+  selector:
+    app: devolon-mysql
+  type: ClusterIP
+  ports:
+    - name: devolon-mysql
+      protocol: TCP
+      port: 3306
+      targetPort: 3306
+---
+apiVersion: v1 # MySql Node port to use with DB GUI Management (workbench)
+kind: Service
+metadata:
+  name: devolon-mysql-node-srv
+spec:
+  type: NodePort
+  selector:
+    app: devolon-mysql
+  ports:
+    - name: devolon-mysql
+      protocol: TCP
+      port: 3306
+      targetPort: 3306
+---
+apiVersion: apps/v1 # MailHog deployment
+kind: Deployment
+metadata:
+  name: devolon-mailhog-depl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: devolon-mailhog
+  template:
+    metadata:
+      labels:
+        app: devolon-mailhog
+    spec:
+      containers:
+        - name: devolon-mailhog
+          image: mailhog/mailhog:v1.0.1
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: devolon-mailhog-srv
+spec:
+  selector:
+    app: devolon-mailhog
+  type: ClusterIP
+  ports:
+    - name: devolon-mailhog
+      protocol: TCP
+      port: 1025
+      targetPort: 1025
+---
+apiVersion: v1 # MailHog Node port to access MailHog Dashboard
+kind: Service
+metadata:
+  name: devolon-mailhog-node-srv
+spec:
+  type: NodePort
+  selector:
+    app: devolon-mailhog
+  ports:
+    - name: devolon-mailhog
+      protocol: TCP
+      port: 8025
+      targetPort: 8025
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: devolon-ingress-srv
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
+spec:
+  defaultBackend:
+    service:
+      name: devolon-laravel-srv
+      port:
+        number: 80
+  rules:
+    - host: checkout.local # Modify hosts file with this domain to point to localhost or minikube ip
+      http:
+        paths:
+          - path: /?(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: devolon-laravel-srv
+                port:
+                  number: 80
+---
+apiVersion: v1 # Sensitive data
+kind: Secret
+metadata:
+  name: devolon-secrets
+type: Opaque
+stringData:
+  MYSQL_ROOT_PASSWORD: password # Repeat like this line

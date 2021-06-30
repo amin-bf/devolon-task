@@ -1,0 +1,16 @@
+apiVersion: skaffold/v2beta13
+kind: Config
+metadata:
+  name: devolon
+deploy:
+  kubectl:
+    manifests:
+      - deployment.yaml
+build:
+  local:
+    push: false
+  artifacts:
+    - image: sail
+      context: vendor/laravel/sail/runtimes/8.0
+      docker:
+        dockerfile: Dockerfile
