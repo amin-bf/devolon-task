@@ -75,14 +75,22 @@ spec:
                 secretKeyRef:
                   name: devolon-secrets
                   key: MYSQL_ROOT_PASSWORD
+          # command: ["/bin/sh"]
+          # args: [mysql]
           volumeMounts:
             - mountPath: /var/lib/mysql
               name: devolon-mysql-vol
+            - mountPath: /docker-entrypoint-initdb.d/create-test-db.sql
+              name: devolon-test-db-conf
       volumes:
         - name: devolon-mysql-vol
           hostPath:
             path: /home/amin/projects/laravel/devolon-mysql # the absolute path to desired directory
             type: DirectoryOrCreate
+        - name: devolon-test-db-conf
+          hostPath:
+            path: /home/amin/projects/laravel/devolon/create-test-db.sql # the absolute path to desired file
+            type: FileOrCreate
 ---
 apiVersion: v1
 kind: Service
