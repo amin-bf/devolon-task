@@ -34,4 +34,17 @@ class ProductFactory extends Factory
             "price" => $this->randomPrices[$randomIndex]
         ];
     }
+
+    public function configure()
+    {
+        return $this->afterCreating(function (Product $product) {
+            foreach (range(2, rand(2, 4)) as $i) {
+                $specialPriceForOneItem = $product->price - ($product->price * ($i / 10));
+                $product->specialPrices()->create([
+                    "quantity" => $i,
+                    "price" => $specialPriceForOneItem * $i
+                ]);
+            }
+        });
+    }
 }
