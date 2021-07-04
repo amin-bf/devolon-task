@@ -17,6 +17,8 @@ class OrderItem extends Model
         "amount"
     ];
 
+    public $timestamps = false;
+
     /**
      * Get the Order that owns the OrderItem
      *
