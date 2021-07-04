@@ -15,7 +15,7 @@ class CreateOrdersTable extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
-            $table->decimal("total")->default(0);
+            $table->unsignedDecimal("total")->default(0);
             $table->timestamps();
         });
     }

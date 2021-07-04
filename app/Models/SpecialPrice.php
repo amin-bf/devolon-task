@@ -6,29 +6,20 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class OrderItem extends Model
+class SpecialPrice extends Model
 {
     use HasFactory;
 
+    public $timestamps = false;
+
     protected $fillable = [
-        "order_id",
         "product_id",
         "quantity",
-        "amount"
+        "price"
     ];
 
     /**
-     * Get the Order that owns the OrderItem
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function order(): BelongsTo
-    {
-        return $this->belongsTo(Order::class, 'order_id', 'id');
-    }
-
-    /**
-     * Get the product that owns the OrderItem
+     * Get the product that owns the SpecialPrice
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */

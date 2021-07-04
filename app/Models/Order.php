@@ -10,7 +10,7 @@ class Order extends Model
 {
     use HasFactory;
 
-    public $fillable = [
+    protected $fillable = [
         "total"
     ];
 

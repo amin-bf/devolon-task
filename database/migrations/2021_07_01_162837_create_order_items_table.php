@@ -17,8 +17,8 @@ class CreateOrderItemsTable extends Migration
             $table->id();
             $table->unsignedBigInteger("order_id");
             $table->unsignedBigInteger("product_id");
-            $table->integer("quantity")->default(1);
-            $table->integer("amount")->default(0);
+            $table->unsignedInteger("quantity")->default(1);
+            $table->unsignedDecimal("amount")->default(0);
 
             // Create constraint to product id
             $table->foreign("product_id")
