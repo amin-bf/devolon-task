@@ -5,9 +5,12 @@ namespace Tests\Unit;
 use App\Models\Order;
 use App\Models\Product;
 use Tests\TestCase;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class ProductTest extends TestCase
 {
+    use RefreshDatabase;
+
     /**
      * Has price attribute.
      *

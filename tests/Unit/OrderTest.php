@@ -3,12 +3,14 @@
 namespace Tests\Unit;
 
 use App\Models\Order;
-use App\Models\OrderItem;
 use App\Models\Product;
 use Tests\TestCase;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class OrderTest extends TestCase
 {
+    use RefreshDatabase;
+
     /**
      * Has total attribute.
      *
