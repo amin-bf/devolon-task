@@ -41,4 +41,59 @@ class OrderTest extends TestCase
 
         $this->assertTrue(!!$order->orderItems->count());
     }
+
+    /**
+     * Updates order total on saving any orderItem
+     *
+     * @return void
+     */
+    public function test_updates_order_total_on_saving_any_orderItem()
+    {
+        $order = Order::factory()->create();
+
+        $product = Product::factory()->create();
+        $product->orderItems()->create([
+            "quantity" => 2,
+            "amount" => 2 * $product->price,
+            "order_id" => $order->id
+        ]);
+
+        $product = Product::factory()->create();
+        $product->orderItems()->create([
+            "quantity" => 2,
+            "amount" => 2 * $product->price,
+            "order_id" => $order->id
+        ]);
+
+        $this->assertTrue((int)$order->fresh()->total === (int)$order->orderItems->sum("amount"));
+    }
+
+    /**
+     * Merges duplicate product items
+     *
+     * @return void
+     */
+    public function test_merges_duplicate_product_items()
+    {
+        $order = Order::factory()->create();
+
+        $product = Product::factory()->create();
+        $product->orderItems()->create([
+            "quantity" => 2,
+            "amount" => 2 * $product->price,
+            "order_id" => $order->id
+        ]);
+
+        $product->orderItems()->create([
+            "quantity" => 3,
+            "amount" => 3 * $product->price,
+            "order_id" => $order->id
+        ]);
+
+        $orderItems = $order->orderItems()->where("product_id", $product->id)->get();
+
+        $this->assertTrue($orderItems->count() === 1);
+
+        $this->assertTrue((int)$orderItems->first()->quantity === 5);
+    }
 }

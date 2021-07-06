@@ -19,6 +19,28 @@ class OrderItem extends Model
 
     public $timestamps = false;
 
+    protected static function booted()
+    {
+        static::saved(function ($orderItem) {
+            $orderItem->order->touch();
+        });
+
+        static::saving(function ($orderItem) {
+
+            $order = $orderItem->order()->first();
+            $product = $orderItem->product()->first();
+
+            $oldItemForSameProduct = $order->orderItems()->where("product_id", $product->id)->first();
+
+            if ($oldItemForSameProduct) {
+                $orderItem->amount = (int)$oldItemForSameProduct->amount + (int)$orderItem->amount;
+                $orderItem->quantity = (int)$oldItemForSameProduct->quantity + (int)$orderItem->quantity;
+
+                $oldItemForSameProduct->delete();
+            }
+        });
+    }
+
     /**
      * Get the Order that owns the OrderItem
      *
