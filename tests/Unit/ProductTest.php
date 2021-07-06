@@ -61,7 +61,6 @@ class ProductTest extends TestCase
 
         $orderItem = $product->orderItems()->create([
             "quantity" => 2,
-            "amount" => 2 * $product->price,
             "order_id" => $order->id
         ]);
 

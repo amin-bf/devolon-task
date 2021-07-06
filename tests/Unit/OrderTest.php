@@ -35,7 +35,6 @@ class OrderTest extends TestCase
 
         $product->orderItems()->create([
             "quantity" => 2,
-            "amount" => 2 * $product->price,
             "order_id" => $order->id
         ]);
 
@@ -54,14 +53,12 @@ class OrderTest extends TestCase
         $product = Product::factory()->create();
         $product->orderItems()->create([
             "quantity" => 2,
-            "amount" => 2 * $product->price,
             "order_id" => $order->id
         ]);
 
         $product = Product::factory()->create();
         $product->orderItems()->create([
             "quantity" => 2,
-            "amount" => 2 * $product->price,
             "order_id" => $order->id
         ]);
 
@@ -80,13 +77,11 @@ class OrderTest extends TestCase
         $product = Product::factory()->create();
         $product->orderItems()->create([
             "quantity" => 2,
-            "amount" => 2 * $product->price,
             "order_id" => $order->id
         ]);
 
         $product->orderItems()->create([
             "quantity" => 3,
-            "amount" => 3 * $product->price,
             "order_id" => $order->id
         ]);
 
