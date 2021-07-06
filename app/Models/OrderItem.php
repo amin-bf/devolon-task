@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Helpers\CustomHelperPrice;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -26,10 +27,10 @@ class OrderItem extends Model
         });
 
         static::saving(function ($orderItem) {
-            static::mergeDuplicate($orderItem);
-
             $product = $orderItem->product()->first();
-            $orderItem->amount = $product->price * $orderItem->quantity;
+            static::mergeDuplicate($orderItem, $product);
+
+            $orderItem->amount = CustomHelperPrice::getSpecialPrice($product, $orderItem->quantity);
         });
     }
 
@@ -58,12 +59,13 @@ class OrderItem extends Model
      *
      * @param OrderItem $orderItem The new item before save
      *
+     * @param Product $product The related product
+     *
      * @return void
      */
-    private static function mergeDuplicate(OrderItem $orderItem)
+    private static function mergeDuplicate(OrderItem &$orderItem, Product $product)
     {
         $order = $orderItem->order()->first();
-        $product = $orderItem->product()->first();
 
         $oldItemForSameProduct = $order->orderItems()->where("product_id", $product->id)->first();
 

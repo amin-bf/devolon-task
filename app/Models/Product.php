@@ -24,7 +24,7 @@ class Product extends Model
      */
     public function specialPrices(): HasMany
     {
-        return $this->hasMany(SpecialPrice::class, 'product_id', 'id');
+        return $this->hasMany(SpecialPrice::class, 'product_id', 'id')->orderBy("price", "desc");
     }
 
     /**

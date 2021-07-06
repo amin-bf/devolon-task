@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Product;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -94,9 +95,11 @@ class OrderItemTest extends TestCase
         $product = Product::factory()->create();
 
         $orderItem = $product->orderItems()->create([
-            "quantity" => 2,
+            "quantity" => 7,
             "order_id" => $order->id
         ]);
+
+        dump($orderItem->toJson());
 
         $this->assertTrue((float)$orderItem->amount !== 0);
     }
