@@ -23,7 +23,6 @@ class OrderItemTest extends TestCase
 
         $orderItem = $product->orderItems()->create([
             "quantity" => 2,
-            "amount" => 2 * $product->price,
             "order_id" => $order->id
         ]);
 
@@ -42,7 +41,6 @@ class OrderItemTest extends TestCase
 
         $orderItem = $product->orderItems()->create([
             "quantity" => 2,
-            "amount" => 2 * $product->price,
             "order_id" => $order->id
         ]);
 
@@ -61,7 +59,6 @@ class OrderItemTest extends TestCase
 
         $orderItem = $product->orderItems()->create([
             "quantity" => 2,
-            "amount" => 2 * $product->price,
             "order_id" => $order->id
         ]);
 
@@ -80,10 +77,27 @@ class OrderItemTest extends TestCase
 
         $orderItem = $product->orderItems()->create([
             "quantity" => 2,
-            "amount" => 2 * $product->price,
             "order_id" => $order->id
         ]);
 
         $this->assertTrue(!!$orderItem->product);
+    }
+
+    /**
+     * Automatically sets amount.
+     *
+     * @return void
+     */
+    public function test_automatically_sets_amount()
+    {
+        $order = Order::factory()->create();
+        $product = Product::factory()->create();
+
+        $orderItem = $product->orderItems()->create([
+            "quantity" => 2,
+            "order_id" => $order->id
+        ]);
+
+        $this->assertTrue((float)$orderItem->amount !== 0);
     }
 }

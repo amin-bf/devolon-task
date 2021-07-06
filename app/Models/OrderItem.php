@@ -21,23 +21,15 @@ class OrderItem extends Model
 
     protected static function booted()
     {
-        static::saved(function ($orderItem) {
+        static::saved(function (OrderItem $orderItem) {
             $orderItem->order->touch();
         });
 
         static::saving(function ($orderItem) {
+            static::mergeDuplicate($orderItem);
 
-            $order = $orderItem->order()->first();
             $product = $orderItem->product()->first();
-
-            $oldItemForSameProduct = $order->orderItems()->where("product_id", $product->id)->first();
-
-            if ($oldItemForSameProduct) {
-                $orderItem->amount = (int)$oldItemForSameProduct->amount + (int)$orderItem->amount;
-                $orderItem->quantity = (int)$oldItemForSameProduct->quantity + (int)$orderItem->quantity;
-
-                $oldItemForSameProduct->delete();
-            }
+            $orderItem->amount = $product->price * $orderItem->quantity;
         });
     }
 
@@ -59,5 +51,27 @@ class OrderItem extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class, 'product_id', 'id');
+    }
+
+    /**
+     * Merges old duplicate item for current product with current item and delete the old item
+     *
+     * @param OrderItem $orderItem The new item before save
+     *
+     * @return void
+     */
+    private static function mergeDuplicate(OrderItem $orderItem)
+    {
+        $order = $orderItem->order()->first();
+        $product = $orderItem->product()->first();
+
+        $oldItemForSameProduct = $order->orderItems()->where("product_id", $product->id)->first();
+
+        if ($oldItemForSameProduct) {
+            $orderItem->amount = (int)$oldItemForSameProduct->amount + (int)$orderItem->amount;
+            $orderItem->quantity = (int)$oldItemForSameProduct->quantity + (int)$orderItem->quantity;
+
+            $oldItemForSameProduct->delete();
+        }
     }
 }
