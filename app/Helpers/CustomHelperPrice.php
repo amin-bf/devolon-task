@@ -10,13 +10,11 @@ class CustomHelperPrice
 {
     public static function getSpecialPrice(Product $product, int $quantity): float
     {
-        dump("In helper", $product->toJson(), $quantity);
 
         $price = 0;
 
         foreach ($product->specialPrices as $specialPrice) {
             /** @var SpecialPrice $specialPrice */
-            dump("special price", $specialPrice->toJson());
             if ($specialPrice->quantity > $quantity) continue;
 
             while (!($specialPrice->quantity > $quantity)) {

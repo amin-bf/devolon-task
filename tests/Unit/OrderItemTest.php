@@ -10,7 +10,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class OrderItemTest extends TestCase
 {
-    use RefreshDatabase;
 
     /**
      * Has quantity attribute.
@@ -98,8 +97,6 @@ class OrderItemTest extends TestCase
             "quantity" => 7,
             "order_id" => $order->id
         ]);
-
-        dump($orderItem->toJson());
 
         $this->assertTrue((float)$orderItem->amount !== 0);
     }

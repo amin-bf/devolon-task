@@ -9,7 +9,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class OrderTest extends TestCase
 {
-    use RefreshDatabase;
 
     /**
      * Has total attribute.
