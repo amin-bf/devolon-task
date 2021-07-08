@@ -132,10 +132,14 @@ This README file is distributed under the terms of the [FREE](https://github.com
 
 ## Authors and history
 
-I am [Amin Bakhtiari Far](https://github.com/amin-bf).) Adding additional notes here about the history of the project can make it more interesting and compelling.
+I am [Amin Bakhtiari Far](https://github.com/amin-bf) author of this [GitHub repository](https://github.com/amin-bf/devolon-task). Learning all the time and trying to become the ultimate `multi-expert`.
+
+> Hits the `enter` key on the keyboard and...
+>
+> ++ Stranger in his head: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;DID YOU MEAN...? `Jack of all trades, master of none` :)
 
 ## Acknowledgments
 
-I was given this great opportunity by the great [o/ devolon](https://www.devolon.fi/en/) company. Therefor I wanted to thank them for believing in me and giving me the chance to show my abilities, and also, for being so receptive and giving me such an extended time to complete the task.
+I hereby wanted to thank [o/ devolon](https://www.devolon.fi/en/) company for this opportunity, and for believing in me and giving me the chance to show my abilities, and also, for being so receptive and giving me such an extended time to complete the task.
 
 I also, wanted to thank Mr. [Majid Akbari](https://github.com/majidakbari), for being such a free-hearted soul, I learned a lot from him and his brilliant tips.
