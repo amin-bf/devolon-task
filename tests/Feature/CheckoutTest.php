@@ -13,19 +13,6 @@ class CheckoutTest extends TestCase
 {
     use RefreshDatabase;
 
-    /**
-     * Indicates whether the default seeder should run before each test.
-     *
-     * @var bool
-     */
-    protected $seed = true;
-
-    // protected function setUp(): void
-    // {
-    //     parent::setUp();
-    //     $this->markTestIncomplete();
-    // }
-
     public function test_has_a_route_listening_for_post_requests()
     {
         $response = $this->json('post', "/api/checkout");

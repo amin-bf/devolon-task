@@ -11,6 +11,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 class OrderItemTest extends TestCase
 {
 
+    use RefreshDatabase;
+
     /**
      * Has quantity attribute.
      *

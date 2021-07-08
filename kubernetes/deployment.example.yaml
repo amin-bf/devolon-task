@@ -12,12 +12,16 @@ spec:
       labels:
         app: devolon-laravel
     spec:
+      securityContext:
+        fsGroup: INIT.USERID
       containers:
         - name: devolon-laravel
-          image: sail:8.0-app
+          image: devolon-laravel:php-8.0
+          command: ["/bin/bash"]
+          args: ["-c", "./k8s lara-init && start-container"]
           env:
             - name: WWWUSER
-              value: "1000"
+              value: "INIT.USERID"
             - name: LARAVEL_SAIL
               value: "1"
           volumeMounts:
@@ -26,7 +30,7 @@ spec:
       volumes:
         - name: devolon-laravel-vol
           hostPath:
-            path: /home/amin/projects/laravel/devolon # the absolute path to the project directory
+            path: INIT.ROOTPATH
             type: DirectoryOrCreate
 ---
 apiVersion: v1
@@ -57,6 +61,10 @@ spec:
       labels:
         app: devolon-mysql
     spec:
+      securityContext:
+        runAsUser: INIT.USERID
+        runAsGroup: INIT.USERID
+        fsGroup: INIT.USERID
       containers:
         - name: devolon-mysql
           image: mysql:8
@@ -85,11 +93,11 @@ spec:
       volumes:
         - name: devolon-mysql-vol
           hostPath:
-            path: /home/amin/projects/laravel/devolon-mysql # the absolute path to desired directory
+            path: INIT.ROOTPATH/mysql
             type: DirectoryOrCreate
         - name: devolon-test-db-conf
           hostPath:
-            path: /home/amin/projects/laravel/devolon/create-test-db.sql # the absolute path to desired file
+            path: INIT.ROOTPATH/create-test-db.sql
             type: FileOrCreate
 ---
 apiVersion: v1
@@ -106,7 +114,7 @@ spec:
       port: 3306
       targetPort: 3306
 ---
-apiVersion: v1 # MySql Node port to use with DB GUI Management (workbench)
+apiVersion: v1 # MySql Node port to use with DB Management GUI (workbench)
 kind: Service
 metadata:
   name: devolon-mysql-node-srv
@@ -119,52 +127,6 @@ spec:
       protocol: TCP
       port: 3306
       targetPort: 3306
----
-apiVersion: apps/v1 # MailHog deployment
-kind: Deployment
-metadata:
-  name: devolon-mailhog-depl
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: devolon-mailhog
-  template:
-    metadata:
-      labels:
-        app: devolon-mailhog
-    spec:
-      containers:
-        - name: devolon-mailhog
-          image: mailhog/mailhog:v1.0.1
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: devolon-mailhog-srv
-spec:
-  selector:
-    app: devolon-mailhog
-  type: ClusterIP
-  ports:
-    - name: devolon-mailhog
-      protocol: TCP
-      port: 1025
-      targetPort: 1025
----
-apiVersion: v1 # MailHog Node port to access MailHog Dashboard
-kind: Service
-metadata:
-  name: devolon-mailhog-node-srv
-spec:
-  type: NodePort
-  selector:
-    app: devolon-mailhog
-  ports:
-    - name: devolon-mailhog
-      protocol: TCP
-      port: 8025
-      targetPort: 8025
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -179,7 +141,7 @@ spec:
       port:
         number: 80
   rules:
-    - host: checkout.local # Modify hosts file with this domain to point to localhost or minikube ip
+    - host: INIT.DOMAIN # Modify hosts file with this domain to point to localhost or minikube ip
       http:
         paths:
           - path: /?(.*)

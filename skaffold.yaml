@@ -10,7 +10,7 @@ build:
   local:
     push: false
   artifacts:
-    - image: sail
-      context: vendor/laravel/sail/runtimes/8.0
+    - image: devolon-laravel
+      context: kubernetes/docker
       docker:
         dockerfile: Dockerfile
