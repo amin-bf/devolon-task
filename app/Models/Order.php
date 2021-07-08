@@ -6,6 +6,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * Order model
+ */
 class Order extends Model
 {
     use HasFactory;
@@ -14,8 +17,14 @@ class Order extends Model
         "total"
     ];
 
+    /**
+     * Perform any actions required after the model boots.
+     *
+     * @return void
+     */
     protected static function booted()
     {
+        // Update total if there are any items
         static::saving(function ($order) {
             $orderItems = $order->orderItems()->get();
 

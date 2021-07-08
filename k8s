@@ -6,67 +6,53 @@ NC='\033[0m'
 USERID=$(id -u)
 
 heading() {
-    echo ""
+    echo -e "${GREEN}"
     COUNTER=4
-    echo -en "\b ${GREEN}--- ${@:1}.${NC}"
+    MESSAGE="\b--- ${@:1}."
+    echo -en $MESSAGE
     while [ $COUNTER -gt 0 ]; do
-        echo -en "${GREEN}\b..${NC}"
+        MESSAGE="${MESSAGE}."
+        echo -en "\b.."
         ((COUNTER = COUNTER - 1))
-        sleep 0.8s
+        sleep 0.4s
     done
+    MESSAGE=$(echo -e $MESSAGE)
+    LENGTH=$(expr length "$MESSAGE")
     echo ""
-    echo ""
+    printf '=%.0s' $(seq $(($LENGTH - 1)))
+    echo -en "${NC}\n"
 }
 
 notif() {
-    echo ""
-    echo -e "${CYAN}[${@:1}]${NC}"
-    echo ""
+    echo -e "${CYAN} - ${@:1}${NC}"
     sleep 0.8s
 }
 
 # Create .env file and configure it
 env() {
-    heading "Laravel .env file"
-    if [ ! -f ".env" ]; then
-        notif "Generating .env file..."
-        cp .env.example .env
-    else
-        notif ".env file exists..."
-    fi
+    notif "Generating .env file..."
+    cp .env.example .env
 }
 
 # Create kubernetes deployment.yaml file and configure it
-k8s-files() {
-    heading "Deployment files"
-    if [ ! -f "deployment.yaml" ]; then
-        notif "Generating deployment.yaml file..."
-        cp kubernetes/deployment.example.yaml deployment.yaml
-    else
-        notif "deployment.yaml file exists..."
-    fi
-    if [ ! -f "kubernetes/docker/Dockerfile" ]; then
-        notif "Generating kubernetes/docker/Dockerfile file..."
-        cp kubernetes/Dockerfile.example kubernetes/docker/Dockerfile
-    else
-        notif "kubernetes/docker/Dockerfile file exists..."
-    fi
-
-    notif "Setting user id and paths..."
+k8s-deployment-file() {
+    notif "Generating deployment.yaml file..."
+    cp kubernetes/deployment.example.yaml deployment.yaml
     sed -i "s/INIT.USERID/$USERID/" "deployment.yaml"
-    sed -i "s/INIT.USERID/$USERID/" "kubernetes/docker/Dockerfile"
     ROOTPATH=$(pwd)
     sed -i "s:INIT.ROOTPATH:$ROOTPATH:" "deployment.yaml"
 }
 
+docker-image-file() {
+    notif "Generating kubernetes/docker/Dockerfile file..."
+    cp kubernetes/Dockerfile.example kubernetes/docker/Dockerfile
+    sed -i "s/INIT.USERID/$USERID/" "kubernetes/docker/Dockerfile"
+}
+
 # Create MySql Data Directory
-mysql() {
-    heading "MySql Directory"
-    if [ ! -d "mysql" ]; then
-        mkdir mysql
-    else
-        notif "mysql directory exists..."
-    fi
+mysql-directory() {
+    notif "Creating 'mysql' directory"
+    mkdir mysql
 }
 
 # Set application domain name
@@ -84,40 +70,75 @@ set-domain() {
 # Apply kubernetes deployment
 deploy() {
     heading "Deploying k8s resources"
-    echo -e "${CYAN}   Now skaffold will run the app and show you som outputs.${NC}"
-    echo -e "${CYAN}   Wait for the **database migration** log and to see **php entered RUNNING state** output.${NC}"
-    echo -e "${CYAN}   The database migration should wait for MySql server to fire up. It might take a while.${NC}"
-    echo -e "${CYAN}   After that you can close skaffold log by pressing 'ctrl'+'c'.${NC}"
+    echo -e "${CYAN} | Now skaffold will run the app and show you som outputs.${NC}"
+    echo -e "${CYAN} | Wait for the **database migration** log and to see **php entered RUNNING state** output.${NC}"
+    echo -e "${CYAN} | The database migration should wait for MySql server to fire up. It might take a while.${NC}"
+    echo -e "${CYAN} | After that you can close skaffold log by pressing 'ctrl'+'c'.${NC}"
     read -p "Press enter to continue: " TEMP
+    echo -e "\n\n\n"
     skaffold run --tail
 }
 
 lara-init() {
-    composer i
-    php artisan key:generate
+    if [ $(pwd) = '/var/www/html' ]; then
+        composer i
+        php artisan key:generate
 
-    echo "Waiting for mysql server. ${spin[0]}"
-    while ! mysqladmin ping -h"devolon-mysql-srv" --silent; do
-        echo "."
-        sleep 0.5s
-    done
-    echo ""
+        COUNTER=1
+        while ! mysqladmin ping -h"devolon-mysql-srv" --silent; do
+            notif "Attempting to contact MySql server"$(printf '.%.0s' $(seq $COUNTER))
+            ((COUNTER = COUNTER + 1))
+        done
+        echo ""
 
-    php artisan migrate --seed
-    chown -R $WWWUSER:$WWWUSER ./
+        php artisan migrate --seed
+        chown -R $WWWUSER:$WWWUSER ./
+    else
+        notif "Bad environment!"
+    fi
+}
+
+create-files() {
+    heading "Generating files"
+    if [ ! -f ".env" ]; then
+        env
+    else
+        notif ".env file exists..."
+    fi
+
+    if [ ! -d "mysql" ]; then
+        mysql-directory
+    else
+        notif "mysql directory exists..."
+    fi
+
+    if [ ! -f "deployment.yaml" ]; then
+        k8s-deployment-file
+    else
+        notif "deployment.yaml file exists..."
+    fi
+
+    if [ ! -f "kubernetes/docker/Dockerfile" ]; then
+        docker-image-file
+    else
+        notif "kubernetes/docker/Dockerfile file exists..."
+    fi
+
+    set-domain
 }
 
 # Configure environment
 start() {
-    notif "--Welcome--"
-    env
-    mysql
-    k8s-files
-    set-domain
+    echo ""
+    echo -e "${CYAN}---Welcome---${NC}"
+
+    create-files
+
     deploy
-    # cmd ./k8s lara-init
+
     notif "Done. access the application on https://$DOMAIN"
-    echo -e " --- ${RED}NOTE$NC: Remember to edit ${RED}hosts${NC} file!!!"
+
+    notif "${RED}NOTE!!!${CYAN}: Remember to edit ${RED}hosts${CYAN} file!!!"
 }
 
 cmd() {
@@ -125,6 +146,7 @@ cmd() {
     POD=$(kubectl get pods --no-headers -o custom-columns=":metadata.name" | grep devolon-laravel-depl)
     kubectl exec $POD -- "${@:1}"
     kubectl exec $POD -- chown -R $USERID:$USERID ./
+    echo ""
     notif "Command [${@:1}] finished..."
 }
 
@@ -135,6 +157,7 @@ stop() {
         k8s-files
     fi
     skaffold delete
+    echo ""
     notif "Application down..."
 }
 

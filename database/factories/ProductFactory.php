@@ -28,7 +28,9 @@ class ProductFactory extends Factory
      */
     public function definition()
     {
+        // Random index to choose from 'randomPrices'
         $randomIndex = array_rand($this->randomPrices);
+
         return [
             "name" => $this->faker->bothify('?###??##'),
             "price" => $this->randomPrices[$randomIndex]
@@ -37,9 +39,11 @@ class ProductFactory extends Factory
 
     public function configure()
     {
+        // Create random special price for product
         return $this->afterCreating(function (Product $product) {
             foreach (range(2, rand(2, 4)) as $i) {
                 $specialPriceForOneItem = $product->price - ($product->price * ($i / 10));
+
                 $product->specialPrices()->create([
                     "quantity" => $i,
                     "price" => $specialPriceForOneItem * $i
